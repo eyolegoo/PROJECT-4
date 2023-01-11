@@ -87,4 +87,80 @@ app.listen(app.get('port'), function() {
 ```
 
 
-  
+**STEP 3: Install [Express](https://expressjs.com) and set up routes to the server**  
+
+- Express is a minimal and flexible **Node.js** web application framework that provides features for web and mobile applications. I used Express to pass book information to and from the MongoDB database.
+
+- I used [Mongoose](https://mongoosejs.com) package which provides a straight-forward, schema-based solution to model the application data. I used Mongoose to establish a schema for the database to store data of my book register.
+
+`sudo npm install express mongoose`
+
+- In ‘Books’ folder, I created a folder named **apps** `mkdir apps && cd apps`
+
+- I created a file named **routes.js** `touch routes.js` and opened the file `vi routes.js`
+
+- I copied and pasted the code below into **routes.js*
+
+```
+var Book = require('./models/book');
+module.exports = function(app) {
+  app.get('/book', function(req, res) {
+    Book.find({}, function(err, result) {
+      if ( err ) throw err;
+      res.json(result);
+    });
+  }); 
+  app.post('/book', function(req, res) {
+    var book = new Book( {
+      name:req.body.name,
+      isbn:req.body.isbn,
+      author:req.body.author,
+      pages:req.body.pages
+    });
+    book.save(function(err, result) {
+      if ( err ) throw err;
+      res.json( {
+        message:"Successfully added book",
+        book:result
+      });
+    });
+  });
+  app.delete("/book/:isbn", function(req, res) {
+    Book.findOneAndRemove(req.query, function(err, result) {
+      if ( err ) throw err;
+      res.json( {
+        message: "Successfully deleted the book",
+        book: result
+      });
+    });
+  });
+  var path = require('path');
+  app.get('*', function(req, res) {
+    res.sendfile(path.join(__dirname + '/public', 'index.html'));
+  });
+};
+```
+
+- In the ‘**apps**’ folder, I created a folder named **models** and changed directory to this folder `mkdir models && cd models`
+
+- I created a file named **book.js** and opened it `touch book.js` and `vi book.js`
+
+- I copied and pasted the code below into ‘**book.js**’ 
+
+```
+var mongoose = require('mongoose');
+var dbHost = 'mongodb://localhost:27017/test';
+mongoose.connect(dbHost);
+mongoose.connection;
+mongoose.set('debug', true);
+var bookSchema = mongoose.Schema( {
+  name: String,
+  isbn: {type: String, index: true},
+  author: String,
+  pages: Number
+});
+var Book = mongoose.model('Book', bookSchema);
+module.exports = mongoose.model('Book', bookSchema);
+```
+
+- 
